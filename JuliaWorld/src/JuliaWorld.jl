@@ -1,11 +1,18 @@
 module JuliaWorld
 
-struct Space end
+# abstract type Space end
 
-struct Grass <: Space end
-struct Rock <: Space end
-struct Water <: Space end
-struct Dirt <: Space end
+# struct Grass <: Space end
+# struct Rock <: Space end
+# struct Water <: Space end
+# struct Dirt <: Space end
+
+@enum Space begin
+    grass
+    rock
+    water
+    dirt
+end
 
 struct Agent end
 
@@ -26,10 +33,8 @@ function generateGrid()
     agents = Dict()
     rows = rand(3:5)
     cols = rand(3:5)
-    spaces = rand([Grass, Rock, Water, Dirt], (rows, cols))
+    spaces = rand([grass, rock, water, dirt], (rows, cols))
     return Grid(agents, spaces)
 end
-
-
 
 end # module
