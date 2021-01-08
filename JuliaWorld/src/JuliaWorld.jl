@@ -37,14 +37,14 @@ function generateGrid()
     return Grid(agents, spaces)
 end
 
-function evolveGridOneStep(grid::Grid)
+function evolveGridOneStep!(grid::Grid)
     dims = size(grid.spaces)
     r = rand(1:dims[1])
     c = rand(1:dims[2])
     grid.spaces[r,c] = rand([grass, rock, water, dirt])
 end
 
-function evolveGridFromAction(agent::Agent, grid::Grid, action::Action)
+function evolveGridFromAction!(agent::Agent, grid::Grid, action::Action)
     # assert agent in grid.agents keys
     @assert agent in keys(grid.agents)
     # compute new loc
@@ -60,11 +60,23 @@ function evolveGridFromAction(agent::Agent, grid::Grid, action::Action)
     grid.agents[agent] = Pair(clamped_r, clamped_c)
 end
 
+function agentSelectAction(agent::Agent, grid::Grid)
+    # assert agent in grid.agents keys
+    @assert agent in keys(grid.agents)
+    action = rand([up, down, left, right, stay])
+    return action
+end
+
 function main()
     grid = generateGrid()
     agent = Agent()
     grid.agents[agent] = Pair(1,1)
-    evolveGridFromAction(agent, grid, right)
+    for t in 1:10
+        evolveGridOneStep!(grid)
+        action = agentSelectAction(agent, grid)
+        evolveGridFromAction!(agent, grid, action)
+        @show grid
+    end
 end
 
 end # module
