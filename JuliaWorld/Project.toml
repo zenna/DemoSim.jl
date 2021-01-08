@@ -1,0 +1,4 @@
+name = "JuliaWorld"
+uuid = "9ca79b55-4aa4-4f03-acdb-9d4b9b496412"
+authors = ["Amber Li <amli@mit.edu>"]
+version = "0.1.0"
