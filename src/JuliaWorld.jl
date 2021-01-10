@@ -94,38 +94,42 @@ function main()
 end
 
 function animate()
+    ITERS = 20
     rows, cols, grid = generateGrid()
+    @show rows, cols
     prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
     agent = Agent(prefs)
     grid.agents[agent] = Pair(1,1)
-    total_reward = 0  # TODO - make observable 
+    total_reward = 0
 
-    xs = 1:cols
-    ys = 1:rows    
-    spaces_obs = Node{Array{Integer,2}}([prefs[grid.spaces[y,x]] for x in xs, y in ys])
-    fig = heatmap(xs, ys, spaces_obs)    
-    agent_obs = Node{Point2f0}(Point2f0(1.5, 1.5))  # TODO -- location is wack
-    reward_obs = Node{Integer}(total_reward)
-    scatter!(agent_obs; markersize=15)
-    # TODO - reward viz
+    # Makie visualization
+    fig = Figure(resolution=(1200, 900))
+    spaces_obs = Node{Array{Integer,2}}([prefs[grid.spaces[r,c]] for c in 1:cols, r in 1:rows])
+    ax, hm = heatmap(fig[1, 1:3], 1:cols+1, 1:rows+1, spaces_obs)
 
-    iterator = 0:1/10:1  # not sure how this works
+    agent_obs = Node{Point2f0}(Point2f0(1.5, 1.5))
+    scatter!(agent_obs; color=:red, markersize=45)
+
+    points = Node(Point2f0[(0, 0)])
+    ax = fig[:, end+1] = Axis(fig)
+    scatter!(ax, points)
+    limits!(ax, 0, ITERS+1, 0, 250)
+
+    iterator = 0:ITERS
     record(fig, "animation.mp4", iterator; framerate=30) do t
-        # change function
         evolveGridOneStep!(grid)
-        spaces_obs[] = [prefs[grid.spaces[y,x]] for x in xs, y in ys]
+        spaces_obs[] = [prefs[grid.spaces[r,c]] for c in 1:cols, r in 1:rows]
 
         action = agentSelectAction(agent, grid)
         reward = evolveGridFromAction!(agent, grid, action)
         new_loc = grid.agents[agent]
-        agent_obs[] = Point2f0(new_loc[2]+0.5, new_loc[1]+0.5)  # TODO
+        agent_obs[] = Point2f0(new_loc[2]+0.5, new_loc[1]+0.5)
 
         total_reward += reward
+        new_point = Point2f0(t, total_reward)
+        points[] = push!(points[], new_point)
 
-        @show grid
-        @show reward
-        @show total_reward
-        sleep(1/10)  # TODO -- this is hacky
+        sleep(1/10)
     end
 end
 
