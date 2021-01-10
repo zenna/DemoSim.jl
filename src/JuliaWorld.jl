@@ -1,5 +1,7 @@
 module JuliaWorld
 
+using GLMakie
+
 # abstract type Space end
 
 # struct Grass <: Space end
@@ -38,7 +40,7 @@ function generateGrid()
     cols = rand(3:5)
     spaces = rand([grass, rock, water, dirt], (rows, cols))
     values = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
-    return Grid(agents, spaces, values)
+    return rows, cols, Grid(agents, spaces, values)
 end
 
 function evolveGridOneStep!(grid::Grid)
@@ -75,7 +77,7 @@ function agentSelectAction(agent::Agent, grid::Grid)
 end
 
 function main()
-    grid = generateGrid()
+    rows, cols, grid = generateGrid()
     prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
     agent = Agent(prefs)
     grid.agents[agent] = Pair(1,1)
@@ -88,6 +90,42 @@ function main()
         @show grid
         @show reward
         @show total_reward
+    end
+end
+
+function animate()
+    rows, cols, grid = generateGrid()
+    prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
+    agent = Agent(prefs)
+    grid.agents[agent] = Pair(1,1)
+    total_reward = 0  # TODO - make observable 
+
+    xs = 1:cols
+    ys = 1:rows    
+    spaces_obs = Node{Array{Integer,2}}([prefs[grid.spaces[y,x]] for x in xs, y in ys])
+    fig = heatmap(xs, ys, spaces_obs)    
+    agent_obs = Node{Point2f0}(Point2f0(1.5, 1.5))  # TODO -- location is wack
+    reward_obs = Node{Integer}(total_reward)
+    scatter!(agent_obs; markersize=15)
+    # TODO - reward viz
+
+    iterator = 0:1/10:1  # not sure how this works
+    record(fig, "animation.mp4", iterator; framerate=30) do t
+        # change function
+        evolveGridOneStep!(grid)
+        spaces_obs[] = [prefs[grid.spaces[y,x]] for x in xs, y in ys]
+
+        action = agentSelectAction(agent, grid)
+        reward = evolveGridFromAction!(agent, grid, action)
+        new_loc = grid.agents[agent]
+        agent_obs[] = Point2f0(new_loc[2]+0.5, new_loc[1]+0.5)  # TODO
+
+        total_reward += reward
+
+        @show grid
+        @show reward
+        @show total_reward
+        sleep(1/10)  # TODO -- this is hacky
     end
 end
 
