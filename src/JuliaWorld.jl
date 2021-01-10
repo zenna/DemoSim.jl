@@ -14,11 +14,14 @@ module JuliaWorld
     dirt
 end
 
-struct Agent end
+struct Agent 
+    preferences::Dict{Space,Integer}
+end
 
 mutable struct Grid
     agents::Dict{Agent,Pair{Integer,Integer}}
     spaces::Array{Space,2}
+    values::Dict{Space,Integer}
 end
 
 @enum Action begin
@@ -34,7 +37,8 @@ function generateGrid()
     rows = rand(3:5)
     cols = rand(3:5)
     spaces = rand([grass, rock, water, dirt], (rows, cols))
-    return Grid(agents, spaces)
+    values = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
+    return Grid(agents, spaces, values)
 end
 
 function evolveGridOneStep!(grid::Grid)
@@ -58,10 +62,13 @@ function evolveGridFromAction!(agent::Agent, grid::Grid, action::Action)
     clamped_c = clamp(new_loc[2], 1, dims[2])
     # update agent loc in grid
     grid.agents[agent] = Pair(clamped_r, clamped_c)
+    # compute reward
+    type = grid.spaces[clamped_r,clamped_c]
+    reward = grid.values[type] * agent.preferences[type]
+    return reward
 end
 
 function agentSelectAction(agent::Agent, grid::Grid)
-    # assert agent in grid.agents keys
     @assert agent in keys(grid.agents)
     action = rand([up, down, left, right, stay])
     return action
@@ -69,13 +76,18 @@ end
 
 function main()
     grid = generateGrid()
-    agent = Agent()
+    prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
+    agent = Agent(prefs)
     grid.agents[agent] = Pair(1,1)
+    total_reward = 0
     for t in 1:10
         evolveGridOneStep!(grid)
         action = agentSelectAction(agent, grid)
-        evolveGridFromAction!(agent, grid, action)
+        reward = evolveGridFromAction!(agent, grid, action)
+        total_reward += reward
         @show grid
+        @show reward
+        @show total_reward
     end
 end
 
