@@ -2,13 +2,6 @@ module JuliaWorld
 
 using GLMakie
 
-# abstract type Space end
-
-# struct Grass <: Space end
-# struct Rock <: Space end
-# struct Water <: Space end
-# struct Dirt <: Space end
-
 @enum Space begin
     grass
     rock
@@ -21,9 +14,9 @@ struct Agent
 end
 
 mutable struct Grid
-    agents::Dict{Agent,Pair{Integer,Integer}}
+    agents::Dict{Agent,Pair{Integer,Integer}}  # location of agents
     spaces::Array{Space,2}
-    values::Dict{Space,Integer}
+    values::Dict{Space,Integer}  # intrinsic to each space
 end
 
 @enum Action begin
@@ -34,23 +27,23 @@ end
     stay = 5
 end
 
-function generateGrid()
+function generategrid()
     agents = Dict()
     rows = rand(3:5)
     cols = rand(3:5)
     spaces = rand([grass, rock, water, dirt], (rows, cols))
-    values = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
+    values = Dict{Space,Int64}(grass=>1,rock=>2,water=>3,dirt=>4)
     return rows, cols, Grid(agents, spaces, values)
 end
 
-function evolveGridOneStep!(grid::Grid)
+function evolvegridonestep!(grid::Grid)
     dims = size(grid.spaces)
     r = rand(1:dims[1])
     c = rand(1:dims[2])
     grid.spaces[r,c] = rand([grass, rock, water, dirt])
 end
 
-function evolveGridFromAction!(agent::Agent, grid::Grid, action::Action)
+function evolvegridfromaction!(agent::Agent, grid::Grid, action::Action)::Int64
     # assert agent in grid.agents keys
     @assert agent in keys(grid.agents)
     # compute new loc
@@ -70,22 +63,22 @@ function evolveGridFromAction!(agent::Agent, grid::Grid, action::Action)
     return reward
 end
 
-function agentSelectAction(agent::Agent, grid::Grid)
+function agentselectaction(agent::Agent, grid::Grid)
     @assert agent in keys(grid.agents)
     action = rand([up, down, left, right, stay])
     return action
 end
 
 function main()
-    rows, cols, grid = generateGrid()
-    prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
+    rows, cols, grid = generategrid()
+    prefs = Dict{Space,Int64}(grass=>1,rock=>2,water=>3,dirt=>4)
     agent = Agent(prefs)
     grid.agents[agent] = Pair(1,1)
     total_reward = 0
     for t in 1:10
-        evolveGridOneStep!(grid)
-        action = agentSelectAction(agent, grid)
-        reward = evolveGridFromAction!(agent, grid, action)
+        evolvegridonestep!(grid)
+        action = agentselectaction(agent, grid)
+        reward = evolvegridfromaction!(agent, grid, action)
         total_reward += reward
         @show grid
         @show reward
@@ -95,8 +88,7 @@ end
 
 function animate()
     ITERS = 20
-    rows, cols, grid = generateGrid()
-    @show rows, cols
+    rows, cols, grid = generategrid()
     prefs = Dict{Space,Integer}(grass=>1,rock=>2,water=>3,dirt=>4)
     agent = Agent(prefs)
     grid.agents[agent] = Pair(1,1)
@@ -117,11 +109,11 @@ function animate()
 
     iterator = 0:ITERS
     record(fig, "animation.mp4", iterator; framerate=30) do t
-        evolveGridOneStep!(grid)
+        evolvegridonestep!(grid)
         spaces_obs[] = [prefs[grid.spaces[r,c]] for c in 1:cols, r in 1:rows]
 
-        action = agentSelectAction(agent, grid)
-        reward = evolveGridFromAction!(agent, grid, action)
+        action = agentselectaction(agent, grid)
+        reward = evolvegridfromaction!(agent, grid, action)
         new_loc = grid.agents[agent]
         agent_obs[] = Point2f0(new_loc[2]+0.5, new_loc[1]+0.5)
 
