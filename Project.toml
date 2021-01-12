@@ -1,7 +1,0 @@
-name = "JuliaWorld"
-uuid = "9ca79b55-4aa4-4f03-acdb-9d4b9b496412"
-authors = ["Amber Li <amli@mit.edu>"]
-version = "0.1.0"
-
-[deps]
-GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
