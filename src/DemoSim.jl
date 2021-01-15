@@ -1,8 +1,6 @@
 module DemoSim
 
-import GLMakie
 using GLMakie: Figure, Node, heatmap, Point2f0, scatter!, Axis, limits!, record
-import Random
 using Random: AbstractRNG, default_rng
 
 export generategrid, evolvegridonestep!, evolvegridfromaction!, agentselectaction, main, animate
@@ -50,7 +48,7 @@ function generategrid(rng::AbstractRNG)
 end
 
 # default case
-generategrid() = generategrid(Random.default_rng())
+generategrid() = generategrid(default_rng())
 
 """
     evolvegridonestep!(grid::Grid[, rng])
@@ -67,7 +65,7 @@ function evolvegridonestep!(grid::Grid, rng::AbstractRNG)
 end
 
 # default case
-evolvegridonestep!(grid::Grid) = evolvegridonestep!(grid, Random.default_rng())
+evolvegridonestep!(grid::Grid) = evolvegridonestep!(grid, default_rng())
 
 """
     evolvegridfromaction!(agent, grid, action)
@@ -103,7 +101,7 @@ function agentselectaction(agent::Agent, grid::Grid, rng::AbstractRNG)
 end
 
 # default case
-agentselectaction(agent::Agent, grid::Grid) = agentselectaction(agent, grid, Random.default_rng())
+agentselectaction(agent::Agent, grid::Grid) = agentselectaction(agent, grid, default_rng())
 
 """
     main([iters=10])
