@@ -1,7 +1,8 @@
-name = "JuliaWorld"
+name = "DemoSim"
 uuid = "9ca79b55-4aa4-4f03-acdb-9d4b9b496412"
-authors = ["Amber Li <amli@mit.edu>"]
+authors = ["Amber Li <amli@mit.edu>", "Michelle Li <limich@mit.edu>"]
 version = "0.1.0"
 
 [deps]
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
