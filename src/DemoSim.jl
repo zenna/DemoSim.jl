@@ -12,9 +12,9 @@ export generategrid, evolvegridonestep!, evolvegridfromaction!, agentselectactio
     dirt
 end
 
-struct Agent 
+struct Agent{T <: Integer}
     # how much the agent values each type of Space
-    preferences::Dict{Space,Int}
+    preferences::Dict{Space,T}
 end
 
 mutable struct Grid
