@@ -4,6 +4,7 @@ using GLMakie: Figure, Node, heatmap, Point2f0, scatter!, Axis, limits!, record
 using Random: AbstractRNG, default_rng
 
 export generategrid, evolvegridonestep!, evolvegridfromaction!, agentselectaction, main, animate
+export Space, Agent, Action
 
 @enum Space begin
     grass
@@ -70,7 +71,8 @@ evolvegridonestep!(grid::Grid) = evolvegridonestep!(grid, default_rng())
 """
     evolvegridfromaction!(agent, grid, action)
 
-Mutate `grid` by having `agent` take the specified `action`.
+Mutate `grid` by having `agent` take the specified `action`. If invalid, do nothing.
+Return reward (value * preference) of the ending location
 """
 function evolvegridfromaction!(agent::Agent, grid::Grid, action::Action)::Int64
     @assert agent in keys(grid.agents)
@@ -83,10 +85,23 @@ function evolvegridfromaction!(agent::Agent, grid::Grid, action::Action)::Int64
     dims = size(grid.spaces)
     clamped_r = clamp(new_loc[1], 1, dims[1])
     clamped_c = clamp(new_loc[2], 1, dims[2])
+    clamped_loc = Pair(clamped_r, clamped_c)
+    # check not occupied
+    is_occupied = false
+    for other_agent in keys(grid.agents)
+        if other_agent == agent
+            continue
+        end
+        if grid.agents[other_agent] == clamped_loc
+            is_occupied = True
+        end
+    end
     # update agent loc in grid
-    grid.agents[agent] = Pair(clamped_r, clamped_c)
+    if !is_occupied
+        grid.agents[agent] = clamped_loc
+    end
     # compute reward
-    type = grid.spaces[clamped_r,clamped_c]
+    type = grid.spaces[grid.agents[agent][1],grid.agents[agent][2]]
     reward = grid.values[type] * agent.preferences[type]
 end
 
